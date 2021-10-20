@@ -24,24 +24,6 @@ help="""轻量级Title批量获取器V1.1
 python3 webtitle.py -f url.txt -t 10  #从url中读取url进行批量访问，以10个线程。
 
 """
-if len(sys.argv)<2:
-    print(help)
-    sys.exit()
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "t:f:h:w", ["b="])
-    for opt, arg in opts:
-        if "-t" == opt:
-            print('线程已经指定为:' + arg)
-            ThreadsNumber=int(arg)
-        elif '-f'==opt:
-            print('输入文件已经指定为:' + arg)
-            inputfile=str(arg)
-        elif '-h' == opt:
-            print(help)
-            sys.exit(1)
-except getopt.GetoptError as e:
-    print ('参数解析发生了错误:' + e.msg)
-    sys.exit(1)
 
 
 
@@ -70,7 +52,7 @@ def GetTitle(url,sem):
         if 'http' not in  url:
             url='http://'+url
         print(url)
-        if isfile(url)== 0:
+        if isfile(url)!= 0:
             sem.release()
             return 0
         req=requests.get(url=url,headers=UsRandom(),verify=False,timeout=3,stream=True)
@@ -93,18 +75,23 @@ def GetTitle(url,sem):
             'len':str(datalen)
         }
         print(res)
+        '''
         lock.acquire()
         open('Result'+nowTime+'.txt','a',encoding='utf-8').write(str(res)+'\n')
         lock.release()
+        '''
 
         #lock.release()
     except Exception as e:
         print(url,str(e))
     sem.release()
 
-for url in open(inputfile,'r',encoding='utf-8').read().split():
+
+
+
+if __name__ == "__main__":
     sem.acquire()
-    threading.Thread(target=GetTitle,args=(url,sem,)).start()
+    threading.Thread(target=GetTitle, args=("epo.cug.edu.cn", sem,)).start()
 
+    print('task Complete******* ')
 
-print('task Complete******* ')
