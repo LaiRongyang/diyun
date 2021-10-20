@@ -92,6 +92,5 @@ def GetTitle(url,sem):
 if __name__ == "__main__":
     sem.acquire()
     threading.Thread(target=GetTitle, args=("epo.cug.edu.cn", sem,)).start()
-
     print('task Complete******* ')
 
