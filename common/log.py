@@ -115,11 +115,11 @@ def LogSuccess(result):
 def LogError(errObj):
     global LogErrTime
     if WaitTime == 0:
-        print("已完成 %d/%d", End, Num)
+        print("已完成 %d/%d %s" % ( End, Num, errObj.__str__()))
         for arg in errObj.args:
             print(arg)
     elif (time.time() - LogSucTime) > WaitTime and (time.time() - LogErrTime) > WaitTime:
-        print("已完成 %d/%d %s", End, Num)
+        print("已完成 %d/%d %s" % ( End, Num, errObj.__str__()))
         for arg in errObj.args:
             print(arg)
         LogErrTime = time.time()
