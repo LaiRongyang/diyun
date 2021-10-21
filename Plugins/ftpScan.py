@@ -31,6 +31,7 @@ def scan(qlist,host,timeout,result):
             ftp.connect(host, 21, timeout)
             ftp.login(name, pwd)
             time.sleep(0.05)
+            defPages = returnDefault(ftp)
             ftp.quit()
             s = "[OK] %s  %s:%s" % (host,name, pwd)
             print(s)
@@ -56,6 +57,25 @@ def anonLogin(hostname):
         print('\n[-] ' + str(hostname) + \
         ' FTP Anonymous Logon Failed.')
         return False
+
+#登陆上ftp服务后，客户以通过ftp.nlst()方法查找所有文件的名字，
+#遍历找寻index.htm，index.asp等文件。
+def returnDefault(ftp):
+    try:
+        dirList = ftp.nlst()
+    except:
+        dirList = []
+        print( '[-] Could not list directory contents.')
+        print( '[-] Skipping To Next Target.')
+        return
+
+    retList = []
+    for fileName in dirList:
+        fn = fileName.lower()
+        if '.php' in fn or '.htm' in fn or '.asp' in fn:
+            print ('[+] Found default page: ' + fileName)
+        retList.append(fileName)
+    return retList
 
 if __name__ == "__main__":
     host=""
