@@ -82,12 +82,12 @@ DefaultPorts = "21,22,80,81,135,139,443,445,1433,3306,5432,6379,7001,8000,8080,8
 
 class HostInfo:
     def __init__(self):
-        self.Host = ""
-        self.Ports = ""
+        self.Host = "" # ip地址
+        self.Ports = ""  # 端口
         self.Domain = ""
         self.Url = ""
         self.Path = ""
-        self.Timeout = 3
+        self.Timeout = 3 # socket Timeout
         self.Scantype = ""
         self.Command = ""
         self.SshKey = ""

@@ -3,6 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 import sys
 import threading
 from common import  config
+
+
 def sshTest():
     try:
 
@@ -28,6 +30,8 @@ def sshTest():
         ssh.close()
     except Exception as e:
         print(e)
+
+
 def sshTest2():
     try:
         private_key_path = '/home/auto/.ssh/id_rsa'
