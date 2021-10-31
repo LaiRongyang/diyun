@@ -2,7 +2,52 @@ import paramiko
 from concurrent.futures import ThreadPoolExecutor
 import sys
 import threading
-from common import  config
+from common import config
+from common import  log
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+is_find = False
+
+
+def SshScan(info):
+    for user in config.Userdict["ssh"]:
+        for pwd in config.Passwords:
+            pwd = pwd.replace("{user}", user)
+            SshCheck(info, user, pwd)
+
+
+def SshCheck(info, user, pwd):
+    try:
+        Host = info.Host
+        Port = info.Ports
+        Username = user
+        Password = pwd
+        if info.SshKey != "":
+            try:
+                pkey = paramiko.RSAKey.from_private_key_file(info.SshKey)
+            except Exception as ee:
+                print(ee.__str__())
+                return
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(Host, Port, Username, pkey)
+        else:
+            ssh.connect(Host, Port, Username, Password, timeout=1.5)
+        if info.Command != "":
+            stdin, stdout, stderr = ssh.exec_command(info.Command)
+            out = stdout.read()
+            result = "[+] SSH:{}:{}:{} {} \n{}".format(Host, Port, Username, Password, out.decode())
+            if info.SshKey != "":
+                result = "[+] SSH:{}:{} sshkey correct \n{}".format(Host, Port, out.decode())
+            log.LogSuccess(result)
+        else:
+            result = ("[+] SSH:{}:{}:{} {} ".format(Host, Port, Username, Password))
+            if info.SshKey != "":
+                result = "[+] SSH:{}:{} sshkey correct".format(Host, Port)
+            log.LogSuccess(result)
+    except Exception as e:
+        log.LogError("[-] ssh %s:%s %s %s %s" % (info.Host, info.Ports, user, pwd, e.__str__()))
+    finally:
+        ssh.close()
 
 
 def sshTest():
@@ -46,53 +91,9 @@ def sshTest2():
         print(e)
 
 
-
-
-ssh = paramiko.SSHClient()
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-is_find = False
-
-
-def SshCheck(info,user,pwd):
-    try:
-        Host = info.Host
-        Port = info.Ports
-        Username = user
-        Password = pwd
-        if info.SshKey != "":
-            try:
-                pkey = paramiko.RSAKey.from_private_key_file(info.SshKey)
-            except Exception as ee:
-                print(ee.__str__())
-                return
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.connect(Host, Port, Username, pkey)
-        else:
-            ssh.connect(Host, Port, Username, Password, timeout=1.5)
-        if info.Command != "" :
-            stdin, stdout, stderr = ssh.exec_command(info.Command)
-            out = stdout.read()
-            result="[+] SSH:{}:{}:{} {} \n{}".format(Host, Port, Username, Password, out.decode())
-            if info.SshKey != "":
-                result="[+] SSH:{}:{} sshkey correct \n{}" .format( Host, Port, out.decode())
-            print(result)
-            # TODO Log
-        else:
-            result = ("[+] SSH:{}:{}:{} {} ".format(Host, Port, Username, Password))
-            if info.SshKey != "":
-                result="[+] SSH:{}:{} sshkey correct" .format( Host, Port)
-            print(result)
-            # TODO Log
-    except Exception as e:
-        print("[-] ssh %s:%s %s %s %s" % (info.Host, info.Ports, user,pwd, e.__str__()))
-        # TODO logErr
-    finally:
-        ssh.close()
-
-
 if __name__ == "__main__":
-    info =config.HostInfo()
-    info.Host="172.27.236.199"
-    info.Ports=22
-    info.Command="ls"
-    SshCheck(info,"zzet","1234567lsy..")
+    info = config.HostInfo()
+    info.Host = "172.27.236.199"
+    info.Ports = 22
+    info.Command = "ls"
+    SshCheck(info, "zzet", "1234567lsy..")

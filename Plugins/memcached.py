@@ -1,5 +1,5 @@
 import socket
-
+from common import log
 
 def MemcachedScan(info):
     try:
@@ -9,10 +9,10 @@ def MemcachedScan(info):
         s.send(bytes('stats\r\n', 'UTF-8'))
         if 'version' in s.recv(1024).decode():
             result="[+] Memcached {} unauthorized".format(info.Host+":"+info.Ports)
-            print(result)
+            log.LogSuccess(result)
             # TODO LogSuccess
         s.close()
     except Exception as e:
         errlog="[-] Memcached {}:{} {}".format(info.Host, info.Ports, e.__str__())
-        print(errlog)
+        log.LogError(errlog)
         pass

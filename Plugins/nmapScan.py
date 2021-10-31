@@ -8,6 +8,7 @@ import nmap
 import json
 
 
+
 # host 之间用空格隔开172.27.236.16 172.27.236.18
 # TODO 用ICMP
 def hostDiscover(Hosts, IsPing=True):

@@ -1,13 +1,9 @@
 import pymongo
-
+from common import log
 
 def MongodbScan(info):
-    try:
-        MongodbUnauth(info)
-    except Exception as e:
-        result="[-] Mongodb {}:{} {}".format(info.Host, info.Ports, e.__str__())
-        print(result)
-        # TODO logErr
+    MongodbUnauth(info)
+
 
 
 def MongodbUnauth(info):
@@ -15,11 +11,11 @@ def MongodbUnauth(info):
         conn = pymongo.MongoClient(info.Host, info.Ports, socketTimeoutMS=4000)
         dbname = conn.list_database_names()
         result = "[+] Mongodb:{} unauthorized".format(info.Host+":"+info.Ports)
-        # TODO .LogSuccess(result)
-        print(result)
         conn.close()
+        log.LogSuccess(result)
     except Exception as e:
-        pass
+        result = "[-] Mongodb {}:{} {}".format(info.Host, info.Ports, e.__str__())
+        log.LogError(result)
 
 
 '''

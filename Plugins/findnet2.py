@@ -1,13 +1,11 @@
 import binascii
 import socket
+from common import log
 bufferV1 = bytes.fromhex("05000b03100000004800000001000000b810b810000000000100000000000100c4fefc9960521b10bbcb00aa0021347a00000000045d888aeb1cc9119fe808002b10486002000000")
 bufferV2 = bytes.fromhex("050000031000000018000000010000000000000000000500")
 bufferV3 = bytes.fromhex("0900ffff0000")
 # bufferV3 len=6
 BUFSIZ=65535
-
-
-
 
 def Findnet(info):
     FindnetScan(info)
@@ -44,7 +42,6 @@ def FindnetScan(info):
 # src =bytes("hello",'utf-8')
 # print(str(binascii.b2a_hex(src)))
 
-
 # text是字节数组 host 是str
 def read(text,host):
     try:
@@ -56,7 +53,7 @@ def read(text,host):
             hostname[i]=hostname[i].replace("00", "")
             host = bytes.fromhex(hostname[i]) # hostname[i] 是 用一个字节存储十六进制的值（一个十六进制的值是 xx的形式）
             result += "\n   [->]" + str(host)
-        print(result)
+        log.LogSuccess(result)
     except Exception as e:
         print(e)
 

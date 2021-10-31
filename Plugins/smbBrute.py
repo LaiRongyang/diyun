@@ -1,5 +1,6 @@
-import os, sys, re, socket, time
-import pymssql
+# smb 爆破
+import time
+from smb import SMBConnection
 import queue
 from common import config
 import threading
@@ -7,13 +8,13 @@ from common import log
 
 threadnum = 10
 
-
-def MssqlScan(info):
+def SmbScan(info):
     qlist = queue.Queue()
-    for user in config.Userdict["mssql"]:
+    for user in config.Userdict["smb"]:
         for pwd in config.Passwords:
-            pwd = pwd.replace("{user}", user)
+            pwd.replace("{user}", user)
             qlist.put(user + ':' + pwd)
+
     threads = []
     for x in range(1, threadnum + 1):
         t = threading.Thread(target=scan, args=(qlist, info.Host, info.Ports, info.Timeout))
@@ -33,11 +34,20 @@ def MssqlScan(info):
 def scan(qlist, host, port, Timeout):
     while not qlist.empty():
         user, pwd = qlist.get().split(':')
+        s = SMBConnection.SMBConnection(user, pwd, '', '')
         try:
-            db = pymssql.connect(server=host, port=port, user=user, password=pwd, timeout=Timeout)
-            result = "[+] mssql:{}:{}:{} {}".format(host, port, user, pwd)
-            log.LogSuccess(result)
+            if s.connect(host) == True:
+                s.close()
+                result = "[+] SMB:{}:{}:{} {}".format(host, port, user, pwd)
+                print(result)
+            else:
+                errlog = "[-] smb {}:{} {} {} ".format(host, 445, user, pwd)
+                print(errlog)
         except Exception as e:
-            result = "[-] mssql {}:{} {} {} {}".format(host, port, user, pwd, e.__str__())
-            log.LogError(result)
-            pass
+            errlog = "[-] smb {}:{} {} {} {}".format(host, 445, user, pwd, e.__str__())
+            print(errlog)
+
+
+
+
+

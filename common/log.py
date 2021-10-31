@@ -111,17 +111,12 @@ def LogSuccess(result):
 
 
 # 打印错误信息
-# errObj 在这里应该是一个错误或者异常对象
-def LogError(errObj):
+def LogError(errinfo):
     global LogErrTime
     if WaitTime == 0:
-        print("已完成 %d/%d %s" % ( End, Num, errObj.__str__()))
-        for arg in errObj.args:
-            print(arg)
+        print("已完成 %d/%d %s" % ( End, Num,errinfo))
     elif (time.time() - LogSucTime) > WaitTime and (time.time() - LogErrTime) > WaitTime:
-        print("已完成 %d/%d %s" % ( End, Num, errObj.__str__()))
-        for arg in errObj.args:
-            print(arg)
+        print("已完成 %d/%d %s" % ( End, Num, errinfo))
         LogErrTime = time.time()
 
 
@@ -146,7 +141,7 @@ def CheckErrs(errObj):  # 这里的err是对象
             if err in arg:
                 return True
     return False
-
+"""
 def logDebug(result):
     logger.debug(result)
 def logInfo(result):
@@ -157,7 +152,7 @@ def logError(result):
     logger.error(result)
 def logCritical(result):
     logger.critical(result)
-
+"""
 
 if __name__ == "__main__":
     LogSuccess("success")

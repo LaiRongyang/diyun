@@ -2,6 +2,7 @@ from common import config
 from common import ParseIP
 from Plugins import nmapScan
 from Plugins import  base
+from  common  import  log
 def Scan(info):
     print("start infoscan")
     Hosts = ParseIP.parseIP(info.Host,config.HostFile,config.NoHosts)
@@ -49,12 +50,14 @@ def Scan(info):
         for url in config.Urls:
             info.Url=url
             AddScan("1000003",info)
-    print("已完成 %v/%v".format( config.End, config.Num))
+    print("已完成 {}/{}".format( log.End, log.Num))
 
 
 def AddScan(scantype , info):
     # TODO 多线程运行扫描函数
+    config.Num += 1
     ScanFunc(base.PluginList,scantype,info)
+    config.End += 1
 
 
 # scantype是端口

