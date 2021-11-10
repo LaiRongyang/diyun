@@ -50,7 +50,7 @@ def Scan(info):
         for url in config.Urls:
             info.Url=url
             AddScan("1000003",info)
-    print("已完成 {}/{}".format( log.End, log.Num))
+    print("已完成 {}/{}".format(log.End, log.Num))
 
 
 def AddScan(scantype , info):
